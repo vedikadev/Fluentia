@@ -1,16 +1,42 @@
-# React + Vite
+# 🚀 Fluentia
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Fluentia is a full-stack web application designed to make language learning more interactive, engaging, and practical. It combines a modern React frontend with a Node.js and Express backend and MongoDB database.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## ✨ Features
 
-## React Compiler
+- User Signup and Login
+- Secure authentication
+- Interactive dashboard
+- Full-stack integration (React + Node + MongoDB)
+- Responsive UI
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 🛠️ Tech Stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Frontend
+- React.js
+- HTML
+- CSS
+- JavaScript
+
+### Backend
+- Node.js
+- Express.js
+
+### Database
+- MongoDB
+
+---
+
+---
+
+## 🌐 Future Improvements
+
+- AI features
+- Gamification (badges, streaks)
+- Real-time chat
+- Multi-language support
+
