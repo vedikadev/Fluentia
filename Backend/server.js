@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
-
+const authRoutes = require('./routes/auth')
 const app = express();
 
 app.use(cors());
@@ -15,7 +15,7 @@ app.get("/", (req, res) => {
   res.send("API Running");
 });
 
-app.use("/api/auth", require("./routes/auth"));
+app.use("/api/auth", authRoutes);
 
 app.listen(5000, () => {
   console.log("Server running on port 5000");

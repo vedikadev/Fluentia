@@ -1,17 +1,16 @@
-
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { FaFire, FaStar, FaBook, FaGlobe, FaMoon, FaSun } from "react-icons/fa";
+import lessons from "../data/lessons";
 
 function Dashboard() {
   const navigate = useNavigate();
 
   const name = localStorage.getItem("name");
-  const language = localStorage.getItem("language");
+  const language = localStorage.getItem("language") || "Spanish";
+  const userId = localStorage.getItem("userId");
 
-  // 🌙 DARK MODE STATE
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
@@ -20,8 +19,49 @@ function Dashboard() {
   }, []);
 
   const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    localStorage.setItem("darkMode", !darkMode);
+    const newMode = !darkMode;
+    setDarkMode(newMode);
+    localStorage.setItem("darkMode", newMode);
+  };
+
+  // ✅ language lessons
+  const lessonList = lessons[language] || [];
+
+  // ✅ USER SPECIFIC DATA
+  const completedKey = `completedLessons_${userId}`;
+
+  let completedLessons = [];
+  try {
+    completedLessons = JSON.parse(localStorage.getItem(completedKey)) || [];
+  } catch {
+    completedLessons = [];
+  }
+
+  const uniqueCompleted = [...new Set(completedLessons.map(String))];
+
+  // 🔥 SAFE PROGRESS (NO 167% BUG EVER)
+  const progress =
+    lessonList.length > 0
+      ? Math.min(
+        100,
+        Math.round((uniqueCompleted.length / lessonList.length) * 100)
+      )
+      : 0;
+
+  const xp = parseInt(localStorage.getItem(`xp_${userId}`)) || 0;
+
+  const startLesson = (id) => {
+    if (!lessonList.length) return;
+    navigate(`/lesson/${id}`);
+  };
+
+  const randomLesson = () => {
+    if (!lessonList.length) return;
+
+    const random =
+      lessonList[Math.floor(Math.random() * lessonList.length)];
+
+    navigate(`/lesson/${random.id}`);
   };
 
   return (
@@ -29,98 +69,140 @@ function Dashboard() {
       <Navbar />
 
       <div style={styles.container}>
-        {/* TOGGLE BUTTON */}
+        {/* DARK MODE */}
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
           <button onClick={toggleDarkMode} style={styles.toggleBtn}>
             {darkMode ? <FaSun /> : <FaMoon />}
           </button>
         </div>
 
-        {/* Greeting */}
+        {/* HEADER */}
         <h1 style={darkMode ? darkStyles.heading : styles.heading}>
           Welcome, {name || "User"} 👋
         </h1>
+
         <p style={darkMode ? darkStyles.subText : styles.subText}>
-          Ready to continue your journey?
+          Learning {language} 🚀
         </p>
 
         {/* HERO */}
         <div style={darkMode ? darkStyles.hero : styles.hero}>
           <div>
-            <h2 style={styles.heroTitle}>Continue Learning</h2>
-            <p style={styles.heroText}>
-              You're doing great! Keep your streak alive 🔥
-            </p>
+            <h2>Continue Learning</h2>
+            <p>Small steps every day = big results 🔥</p>
           </div>
 
           <button
             style={styles.heroBtn}
-            onClick={() => navigate("/lesson")}
+            onClick={() => lessonList.length && navigate(`/lesson/${lessonList[0].id}`)}
           >
-            Resume
+            Start
           </button>
         </div>
 
         {/* STATS */}
-        <h2 style={styles.sectionTitle}>Your Stats</h2>
+        <h2 style={styles.sectionTitle}>Stats</h2>
 
-        <div style={darkMode? darkStyles.cardContainer : styles.cardContainer}>
-          {[ 
-            { icon: <FaGlobe />, title: "Language", value: language || "N/A" },
-            { icon: <FaStar />, title: "XP", value: "0" },
+        <div style={styles.cardContainer}>
+          {[
+            { icon: <FaGlobe />, title: "Language", value: language },
+            { icon: <FaStar />, title: "XP", value: xp },
             { icon: <FaFire />, title: "Streak", value: "0 days" },
-            { icon: <FaBook />, title: "Lessons", value: "5 Completed" },
+            { icon: <FaBook />, title: "Lessons", value: lessonList.length },
           ].map((item, i) => (
-            <div
-              key={i}
-              style={darkMode ? darkStyles.card : styles.card}
-              onMouseEnter={hoverIn}
-              onMouseLeave={hoverOut}
-            >
-              {React.cloneElement(item.icon, {
-                size: 22,
-                color: "#6b4ce6",
-              })}
-              <h3 style={darkMode? darkStyles.cardTitle:styles.cardTitle}>{item.title}</h3>
-              <p style={styles.cardValue}>{item.value}</p>
+            <div key={i} style={darkMode ? darkStyles.card : styles.card}>
+              {React.cloneElement(item.icon, { size: 22, color: "#6b4ce6" })}
+              <h3>{item.title}</h3>
+              <p>{item.value}</p>
             </div>
           ))}
         </div>
 
         {/* BUTTONS */}
         <div style={styles.buttonRow}>
-          <button style={styles.primaryBtn}>Start Lesson</button>
-          <button style={styles.outlineBtn}>Practice</button>
-          <button style={styles.outlineBtn}>Progress</button>
+          <button onClick={() => startLesson(lessonList[0]?.id)} style={styles.primaryBtn}>
+            Start Lesson
+          </button>
+
+          <button onClick={() => navigate("/chat")} style={styles.primaryBtn}>
+            AI Tutor
+          </button>
+
+          <button onClick={randomLesson} style={styles.outlineBtn}>
+            Practice
+          </button>
+
+          <button
+            onClick={() => alert(`Progress: ${progress}%`)}
+            style={styles.outlineBtn}
+          >
+            Progress
+          </button>
+
+          <button
+            onClick={() => navigate("/select-language")}
+            style={styles.outlineBtn}
+          >
+            Change Language
+          </button>
+          <button
+            onClick={() => navigate("/speak")}
+            style={styles.primaryBtn}
+          >
+            Speak & Learn
+          </button>
         </div>
 
         {/* PROGRESS */}
         <div style={darkMode ? darkStyles.progressCard : styles.progressCard}>
-          <h3>Daily Progress</h3>
+          <h3>Progress</h3>
+
           <div style={styles.progressBg}>
-            <div style={styles.progressFill}></div>
+            <div style={{ ...styles.progressFill, width: `${progress}%` }} />
           </div>
-          <p style={styles.progressText}>30% completed</p>
+
+          <p>{progress}% completed</p>
+        </div>
+
+        {/* LESSONS */}
+        <h2>Lessons</h2>
+
+        <div style={styles.lessonGrid}>
+          {lessonList.map((lesson) => {
+            const isDone = uniqueCompleted.includes(String(lesson.id));
+
+            return (
+              <div
+                key={lesson.id}
+                onClick={() => navigate(`/lesson/${lesson.id}`)}
+                style={{
+                  background: darkMode ? "#3c3750" : "#fff",
+                  padding: "20px",
+                  borderRadius: "12px",
+                  cursor: "pointer",
+                }}
+              >
+                <h3>{lesson.title}</h3>
+                <p>{lesson.description}</p>
+                <p>{isDone ? "100%" : "0%"} completed</p>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
   );
 }
 
-/* 🎯 Hover */
-const hoverIn = (e) => {
-  e.currentTarget.style.transform = "translateY(-6px)";
-};
-const hoverOut = (e) => {
-  e.currentTarget.style.transform = "translateY(0)";
-};
+export default Dashboard;
 
-/* 🌞 LIGHT MODE */
+
+/* LIGHT */
 const styles = {
   page: { minHeight: "100vh", background: "#f6f7fb" },
   container: { padding: "40px", maxWidth: "1100px", margin: "auto" },
-  heading: { fontSize: "32px", fontWeight: "700", color: "#3b3a3a" },
-  subText: { color: "#090909" },
+  heading: { fontSize: "32px", fontWeight: "700" },
+  subText: { color: "#444" },
 
   toggleBtn: {
     background: "white",
@@ -128,32 +210,26 @@ const styles = {
     padding: "10px",
     borderRadius: "50%",
     cursor: "pointer",
-    boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
   },
 
   hero: {
     marginTop: "25px",
     background: "linear-gradient(135deg, #73a6f3, #5837c6)",
-    borderRadius: "20px",
     padding: "40px",
     color: "white",
     display: "flex",
     justifyContent: "space-between",
+    borderRadius: "20px",
   },
-
-  heroTitle: { fontSize: "24px" },
-  heroText: { marginTop: "5px", opacity: 0.9 },
 
   heroBtn: {
-    padding: "6px 12px",
     background: "white",
-    color: "#6b4ce6",
     border: "none",
+    padding: "8px 14px",
     borderRadius: "10px",
-    fontWeight: "600",
     cursor: "pointer",
+    color: "#6b4ce6",
   },
-  
 
   sectionTitle: { marginTop: "40px" },
 
@@ -169,29 +245,27 @@ const styles = {
     borderRadius: "16px",
     width: "180px",
     boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
-    transition: "0.3s",
   },
-
-  cardTitle: { fontSize: "14px", color: "#666" },
-  cardValue: { fontSize: "20px", fontWeight: "600" },
 
   buttonRow: { marginTop: "30px" },
 
   primaryBtn: {
-    padding: "10px 20px",
     background: "#6b4ce6",
     color: "white",
+    padding: "10px 20px",
     border: "none",
     borderRadius: "10px",
     marginRight: "10px",
+    cursor: "pointer",
   },
 
   outlineBtn: {
-    padding: "10px 20px",
     border: "1px solid #6b4ce6",
     color: "#6b4ce6",
+    padding: "10px 20px",
     borderRadius: "10px",
     marginRight: "10px",
+    cursor: "pointer",
   },
 
   progressCard: {
@@ -205,32 +279,43 @@ const styles = {
     height: "10px",
     background: "#ddd",
     borderRadius: "5px",
-    marginTop: "10px",
   },
 
   progressFill: {
-    width: "30%",
     height: "100%",
     background: "#6b4ce6",
-    borderRadius: "5px",
   },
 
   progressText: { color: "#666" },
+
+  lessonGrid: {
+    display: "flex",
+    gap: "20px",
+    flexWrap: "wrap",
+    marginTop: "20px",
+  },
 };
 
-/* 🌙 DARK MODE */
+/* DARK */
 const darkStyles = {
   page: { minHeight: "100vh", background: "#2f293f", color: "white" },
-  container: { padding: "40px", maxWidth: "1100px", margin: "auto" },
-  heading: {  fontSize: "32px", fontWeight: "700", color: "white" },
-  subText: { color: "#d3d0d0" },
+  heading: { fontSize: "32px", fontWeight: "700" },
+  subText: { color: "#ccc" },
+
+  hero: {
+    marginTop: "25px",
+    background: "linear-gradient(135deg, #5e5871, #332169)",
+    padding: "40px",
+    borderRadius: "20px",
+    display: "flex",
+    justifyContent: "space-between",
+  },
 
   card: {
     background: "#3c3750",
     padding: "20px",
     borderRadius: "16px",
     width: "180px",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.5)",
   },
 
   progressCard: {
@@ -239,23 +324,6 @@ const darkStyles = {
     padding: "20px",
     borderRadius: "12px",
   },
-  hero: {
-  marginTop: "25px",
-  background: "linear-gradient(135deg, #5e5871, #332169)", // darker purple
-  borderRadius: "20px",
-  padding: "40px",
-  color: "white",
-  display: "flex",
-  justifyContent: "space-between",
-},
-cardContainer: {
-    display: "flex",
-    gap: "20px",
-    flexWrap: "wrap",
-    color: "white",
-  },
-   cardTitle: { fontSize: "14px", color: "#d1d1d1" },
 
+  cardTitle: { fontSize: "14px", color: "#ddd" },
 };
-
-export default Dashboard;
